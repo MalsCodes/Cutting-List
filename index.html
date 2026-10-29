@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cutting List</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f5f5f7; color: #1d1d1f; }
+        h1, h2 { color: #1d1d1f; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; }
+        input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { background-color: #0071e3; color: white; border: none; padding: 12px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; font-size: 16px; }
+        button:hover { background-color: #0077ed; }
+        
+        /* Graphical Elements */
+        .board-visual { height: 40px; background: #e2e2e2; border-radius: 6px; margin: 10px 0; overflow: hidden; display: flex; border: 1px solid #b5b5b7; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        .cut-segment { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: white; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); box-sizing: border-box; transition: width 0.3s ease; }
+        .kerf-segment { height: 100%; background-color: #ff453a; width: 3px; min-width: 2px; position: relative; z-index: 2; opacity: 0.95; }
+        .waste-segment { height: 100%; background-color: #8e8e93; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; font-style: italic; }
+        .board-container { margin-bottom: 25px; padding: 15px; background: #fafafa; border-radius: 8px; border: 1px solid #e5e5ea; }
+        
+        ul { padding-left: 20px; margin: 10px 0; }
+        li { margin-bottom: 5px; font-size: 15px; }
+        hr { border: 0; border-top: 1px solid #e5e5ea; margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+    <h1>Cutting List</h1>
+    
+    <div class="card">
+        <h2>1. Inventory & Settings</h2>
+        <div class="form-group">
+            <label for="stockLengthsInput">Available Stock Board Lengths (comma-separated, e.g., 2400, 3000):</label>
+            <input type="text" id="stockLengthsInput" value="2400, 3000">
+        </div>
+        <div class="form-group">
+            <label for="kerf">Saw Blade Thickness / Kerf (mm):</label>
+            <input type="number" id="kerf" value="3" step="0.5">
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>2. Required Cuts</h2>
+        <div class="form-group">
+            <label for="cutsInput">Enter required cuts as comma-separated lengths (e.g., 1200, 1200, 600, 450):</label>
+            <input type="text" id="cutsInput" value="1200, 1200, 600, 600, 450, 450, 300">
+        </div>
+        <button onclick="optimizeCuts()">Calculate & Graph Plan</button>
+    </div>
+
+    <div class="card" id="resultsCard" style="display:none;">
+        <h2>3. Graphical Allocation Diagram</h2>
+        <div id="summary"></div>
+        <div id="visualLayouts"></div>
+    </div>
+
+    <script>
+        function optimizeCuts() {
+            const kerf = parseFloat(document.getElementById('kerf').value);
+            const stockInputRaw = document.getElementById('stockLengthsInput').value;
+            const cutsInputRaw = document.getElementById('cutsInput').value;
+            
+            let availableStocks = stockInputRaw.split(',')
+                .map(x => parseFloat(x.trim()))
+                .filter(x => !isNaN(x) && x > 0)
+                .sort((a, b) => b - a);
+
+            let demandedCuts = cutsInputRaw.split(',')
+                .map(x => parseFloat(x.trim()))
+                .filter(x => !isNaN(x) && x > 0)
+                .sort((a, b) => b - a);
+
+            if (availableStocks.length === 0) {
+                alert("Please enter at least one valid stock board length.");
+                return;
+            }
+
+            if (demandedCuts.length === 0) {
+                alert("Please enter valid required cut lengths.");
+                return;
+            }
+
+            const maxAvailableStock = availableStocks[0];
+            let oversizedCuts = demandedCuts.filter(cut => cut > maxAvailableStock);
+            if (oversizedCuts.length > 0) {
+                alert(`Error: Some required cuts (${oversizedCuts.join(', ')}mm) are longer than your longest available stock board (${maxAvailableStock}mm).`);
+                return;
+            }
+
+            let boards = []; 
+
+            demandedCuts.forEach(cut => {
+                let placed = false;
+
+                for (let board of boards) {
+                    let spaceNeeded = board.cuts.length === 0 ? cut : cut + kerf;
+                    if (board.remaining >= spaceNeeded) {
+                        board.cuts.push(cut);
+                        board.remaining -= spaceNeeded;
+                        placed = true;
+                        break;
+                    }
+                }
+
+                if (!placed) {
+                    let viableStocks = availableStocks.filter(s => s >= cut).sort((a, b) => a - b);
+                    let chosenStock = viableStocks[0]; 
+
+                    boards.push({
+                        totalLength: chosenStock,
+                        remaining: chosenStock - cut,
+                        cuts: [cut]
+                    });
+                }
+            });
+
+            renderResults(boards, kerf);
+        }
+
+        function renderResults(boards, kerf) {
+            document.getElementById('resultsCard').style.display = 'block';
+            
+            let totalWaste = boards.reduce((acc, b) => acc + b.remaining, 0);
+            let summaryHTML = `<p><strong>Total Stock Boards Needed:</strong> ${boards.length}</p><ul>`;
+            
+            let counts = {};
+            boards.forEach(b => counts[b.totalLength] = (counts[b.totalLength] || 0) + 1);
+            for (let [length, count] of Object.entries(counts)) {
+                summaryHTML += `<li>${count}x piece(s) of <strong>${length}mm</strong> stock</li>`;
+            }
+            summaryHTML += `</ul>`;
+            summaryHTML += `<p><strong>Total Cumulative Waste:</strong> ${totalWaste.toFixed(1)} mm</p><hr>`;
+            document.getElementById('summary').innerHTML = summaryHTML;
+
+            let layoutsHTML = '';
+            // Distinct material aesthetic colors for visualization blocks
+            const colors = ['#2ca02c', '#1f77b4', '#ff7f0e', '#9467bd', '#e377c2', '#17becf'];
+
+            boards.forEach((board, index) => {
+                layoutsHTML += `<div class="board-container"><h3>Board #${index + 1} (${board.totalLength}mm Stock)</h3><div class="board-visual">`;
+                
+                board.cuts.forEach((cut, cIndex) => {
+                    let cutWidthPercent = (cut / board.totalLength) * 100;
+                    let color = colors[cIndex % colors.length];
+                    layoutsHTML += `<div class="cut-segment" style="width: ${cutWidthPercent}%; background-color: ${color};">${cut}mm</div>`;
+                    
+                    if (cIndex < board.cuts.length - 1) {
+                        let kerfWidthPercent = (kerf / board.totalLength) * 100;
+                        layoutsHTML += `<div class="kerf-segment" style="width: ${kerfWidthPercent}%;"></div>`;
+                    }
+                });
+
+                if (board.remaining > 0) {
+                    let wasteWidthPercent = (board.remaining / board.totalLength) * 100;
+                    layoutsHTML += `<div class="waste-segment" style="width: ${wasteWidthPercent}%;">${board.remaining.toFixed(0)}mm Waste</div>`;
+                }
+
+                layoutsHTML += `</div></div>`;
+            });
+
+            document.getElementById('visualLayouts').innerHTML = layoutsHTML;
+        }
+    </script>
+</body>
+</html>
