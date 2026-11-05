@@ -80,19 +80,6 @@
         .btn-secondary:hover {
             background-color: #e3f2fd;
         }
-        .btn-danger {
-            background-color: #ff453a;
-            font-size: 12px;
-            padding: 6px 10px;
-            width: auto;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .btn-danger:hover {
-            background-color: #ff3b30;
-        }
         .table-input {
             padding: 6px;
         }
@@ -174,14 +161,12 @@
                 <tr>
                     <th>Length (mm)</th>
                     <th>Available Qty (Blank for infinite)</th>
-                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td><input type="number" class="table-input stock-length" value="4800" min="1"></td>
                     <td><input type="number" class="table-input stock-qty" value="" placeholder="∞" min="1"></td>
-                    <td><button class="btn-danger" onclick="deleteRow(this)">Delete</button></td>
                 </tr>
             </tbody>
         </table>
@@ -215,14 +200,8 @@
             row.innerHTML = `
                 <td><input type="number" class="table-input stock-length" placeholder="e.g. 4800" min="1"></td>
                 <td><input type="number" class="table-input stock-qty" placeholder="∞" min="1"></td>
-                <td><button class="btn-danger" onclick="deleteRow(this)">Delete</button></td>
             `;
             tbody.appendChild(row);
-        }
-
-        function deleteRow(button) {
-            const row = button.closest('tr');
-            row.remove();
         }
 
         function optimizeCuts() {
@@ -295,3 +274,14 @@
                     b.remaining -= spaceNeeded;
                 } else if (bestNewStockLength !== null) {
                     usedStockCounts[bestNewStockLength] = (usedStockCounts[bestNewStockLength] || 0) + 1;
+                    boards.push({ initialLength: bestNewStockLength, cuts: [cut], remaining: bestNewStockLength - cut });
+                } else {
+                    alert(`Cannot fit required cut length ${cut}mm into any available stock sizes under the specified restrictions.`);
+                    return;
+                }
+            }
+
+            let totalSkins = boards.length;
+            let totalCutLength = demandedCuts.reduce((a, b) => a + b, 0);
+            let totalStockLength = boards.reduce((sum, b) => sum + b.initialLength, 0);
+            let totalWaste = totalStockLength - totalCutLength;
