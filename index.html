@@ -5,43 +5,170 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cutting List Optimizer</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f5f5f7; color: #1d1d1f; }
-        h1, h2 { color: #1d1d1f; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; }
-        input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        button { background-color: #0071e3; color: white; border: none; padding: 12px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; font-size: 16px; }
-        button:hover { background-color: #0077ed; }
-        
-        /* Table Styles for Inventory Management */
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e5e5ea; }
-        th { font-size: 14px; color: #8e8e93; font-weight: 600; }
-        .btn-secondary { background-color: #f5f5f7; color: #0071e3; border: 1px solid #0071e3; width: auto; padding: 8px 12px; font-size: 14px; margin-bottom: 10px; }
-        .btn-secondary:hover { background-color: #e3f2fd; }
-        .btn-danger { background-color: #ff453a; font-size: 12px; padding: 6px 10px; width: auto; }
-        .btn-danger:hover { background-color: #ff3b30; }
-        .table-input { padding: 6px; }
-
-        /* Graphical Elements */
-        .board-visual { height: 40px; background: #e2e2e2; border-radius: 6px; margin: 10px 0; overflow: hidden; display: flex; border: 1px solid #b5b5b7; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
-        .cut-segment { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: white; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); box-sizing: border-box; transition: width 0.3s ease; }
-        .kerf-segment { height: 100%; background-color: #ff453a; width: 3px; min-width: 2px; position: relative; z-index: 2; opacity: 0.95; }
-        .waste-segment { height: 100%; background-color: #8e8e93; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; font-style: italic; }
-        .board-container { margin-bottom: 25px; padding: 15px; background: #fafafa; border-radius: 8px; border: 1px solid #e5e5ea; }
-        
-        ul { padding-left: 20px; margin: 10px 0; }
-        li { margin-bottom: 5px; font-size: 15px; }
-        hr { border: 0; border-top: 1px solid #e5e5ea; margin: 15px 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+        }
+        h1, h2 {
+            color: #1d1d1f;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0071e3;
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0077ed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #e5e5ea;
+        }
+        th {
+            font-size: 14px;
+            color: #8e8e93;
+            font-weight: 600;
+        }
+        .btn-secondary {
+            background-color: #f5f5f7;
+            color: #0071e3;
+            border: 1px solid #0071e3;
+            width: auto;
+            padding: 8px 12px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .btn-secondary:hover {
+            background-color: #e3f2fd;
+        }
+        .btn-danger {
+            background-color: #ff453a;
+            font-size: 12px;
+            padding: 6px 10px;
+            width: auto;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-danger:hover {
+            background-color: #ff3b30;
+        }
+        .table-input {
+            padding: 6px;
+        }
+        .board-visual {
+            height: 40px;
+            background: #e2e2e2;
+            border-radius: 6px;
+            margin: 10px 0;
+            overflow: hidden;
+            display: flex;
+            border: 1px solid #b5b5b7;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .cut-segment {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            transition: width 0.3s ease;
+            background-color: #34c759;
+        }
+        .kerf-segment {
+            height: 100%;
+            background-color: #ff453a;
+            width: 3px;
+            min-width: 2px;
+            position: relative;
+            z-index: 2;
+            opacity: 0.95;
+        }
+        .waste-segment {
+            height: 100%;
+            background-color: #8e8e93;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 500;
+            font-style: italic;
+            flex-grow: 1;
+        }
+        .board-container {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 1px solid #e5e5ea;
+        }
+        ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        li {
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #e5e5ea;
+            margin: 15px 0;
+        }
     </style>
 </head>
 <body>
 
     <h1>Cutting List</h1>
-    
+
     <div class="card">
-        <h2>1. Stock Board Inventory</h2>
+        <h2>1. Stock Timber Length</h2>
         <table id="inventoryTable">
             <thead>
                 <tr>
@@ -52,12 +179,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td><input type="number" class="table-input stock-length" value="2400" min="1"></td>
-                    <td><input type="number" class="table-input stock-qty" value="" placeholder="∞" min="1"></td>
-                    <td><button class="btn-danger" onclick="deleteRow(this)">Delete</button></td>
-                </tr>
-                <tr>
-                    <td><input type="number" class="table-input stock-length" value="3000" min="1"></td>
+                    <td><input type="number" class="table-input stock-length" value="4800" min="1"></td>
                     <td><input type="number" class="table-input stock-qty" value="" placeholder="∞" min="1"></td>
                     <td><button class="btn-danger" onclick="deleteRow(this)">Delete</button></td>
                 </tr>
@@ -91,7 +213,7 @@
             const tbody = document.querySelector('#inventoryTable tbody');
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><input type="number" class="table-input stock-length" placeholder="e.g. 1800" min="1"></td>
+                <td><input type="number" class="table-input stock-length" placeholder="e.g. 4800" min="1"></td>
                 <td><input type="number" class="table-input stock-qty" placeholder="∞" min="1"></td>
                 <td><button class="btn-danger" onclick="deleteRow(this)">Delete</button></td>
             `;
@@ -106,48 +228,41 @@
         function optimizeCuts() {
             const kerf = parseFloat(document.getElementById('kerf').value);
             const cutsInputRaw = document.getElementById('cutsInput').value;
-            
-            // Collect stock data from the dynamic table UI
+
             let stockInventory = [];
             const rows = document.querySelectorAll('#inventoryTable tbody tr');
             rows.forEach(row => {
                 const len = parseFloat(row.querySelector('.stock-length').value);
                 const qtyVal = row.querySelector('.stock-qty').value;
                 const qty = qtyVal === "" ? Infinity : parseInt(qtyVal, 10);
-                
                 if (!isNaN(len) && len > 0 && !isNaN(qty) && qty > 0) {
                     stockInventory.push({ length: len, remainingQty: qty });
                 }
             });
 
-            // Sort available stock sizes ascending to prefer smaller profiles where possible
             stockInventory.sort((a, b) => a.length - b.length);
 
             let demandedCuts = cutsInputRaw.split(',')
                 .map(x => parseFloat(x.trim()))
                 .filter(x => !isNaN(x) && x > 0)
-                .sort((a, b) => b - a); // Large elements prioritized first
+                .sort((a, b) => b - a);
 
             if (stockInventory.length === 0) {
                 alert("Please add at least one valid stock board length configuration.");
                 return;
             }
-
             if (demandedCuts.length === 0) {
                 alert("Please enter valid required cut lengths.");
                 return;
             }
 
-            let boards = []; 
-
-            // Track dynamic usage allocations per type during optimization
+            let boards = [];
             let usedStockCounts = {};
 
             for (let cut of demandedCuts) {
                 let bestBoardIndex = -1;
                 let minWasteIncrease = Infinity;
 
-                // 1. Check existing open boards for space
                 for (let i = 0; i < boards.length; i++) {
                     let spaceNeeded = boards[i].cuts.length === 0 ? cut : cut + kerf;
                     if (boards[i].remaining >= spaceNeeded) {
@@ -159,12 +274,10 @@
                     }
                 }
 
-                // 2. See what the best new board option would be if inventory capacity remains
                 let bestNewStockLength = null;
                 let minNewStockWaste = Infinity;
-                
+
                 stockInventory.forEach(stock => {
-                    // Check if stock is large enough and we haven't exhausted our stock limit
                     let currentUsage = usedStockCounts[stock.length] || 0;
                     if (stock.length >= cut && currentUsage < stock.remainingQty) {
                         let waste = stock.length - cut;
@@ -175,19 +288,10 @@
                     }
                 });
 
-                // Decision: Pack into existing open slice OR pop open a clean stock board profiles
                 if (bestBoardIndex !== -1 && minWasteIncrease <= minNewStockWaste) {
                     let b = boards[bestBoardIndex];
                     let spaceNeeded = b.cuts.length === 0 ? cut : cut + kerf;
                     b.cuts.push(cut);
                     b.remaining -= spaceNeeded;
                 } else if (bestNewStockLength !== null) {
-                    // Pull a fresh board from inventory records
                     usedStockCounts[bestNewStockLength] = (usedStockCounts[bestNewStockLength] || 0) + 1;
-                    boards.push({
-                        totalLength: bestNewStockLength,
-                        remaining: bestNewStockLength - cut,
-                        cuts: [cut]
-                    });
-                } else {
-                    alert(`Error: The cut sequence stopped at ${cut}mm. No valid boards with available stock remaining could contain this segment structural path.`);
