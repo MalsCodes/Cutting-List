@@ -5,283 +5,300 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cutting List Optimizer</title>
     <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        .container {
             max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
-            background-color: #f5f5f7;
-            color: #1d1d1f;
-        }
-        h1, h2 {
-            color: #1d1d1f;
-        }
-        .card {
-            background: white;
-            padding: 20px;
+            margin: 0 auto;
+            background: var(--surface);
+            padding: 2rem;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
+
+        h1, h2 {
+            margin-top: 0;
+            color: var(--text);
+        }
+
+        h1 { border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+        h2 { font-size: 1.25rem; margin-bottom: 1rem; margin-top: 1.5rem;}
+
+        .section {
+            background: #fafafa;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
         .form-group {
-            margin-bottom: 15px;
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
         }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
         label {
-            display: block;
+            font-size: 0.875rem;
             font-weight: 600;
-            margin-bottom: 5px;
-            font-size: 14px;
+            margin-bottom: 0.25rem;
         }
-        input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
+
+        input[type="text"], input[type="number"] {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
             border-radius: 6px;
-            box-sizing: border-box;
+            font-size: 1rem;
         }
+
         button {
-            background-color: #0071e3;
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 15px;
-            border-radius: 6px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
             font-weight: 600;
+            border-radius: 6px;
             cursor: pointer;
             width: 100%;
-            font-size: 16px;
+            transition: background-color 0.2s;
         }
+
         button:hover {
-            background-color: #0077ed;
+            background-color: var(--primary-hover);
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
+
+        .diagram-container {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
         }
-        th, td {
-            text-align: left;
-            padding: 10px;
-            border-bottom: 1px solid #e5e5ea;
-        }
-        th {
-            font-size: 14px;
-            color: #8e8e93;
-            font-weight: 600;
-        }
-        .btn-secondary {
-            background-color: #f5f5f7;
-            color: #0071e3;
-            border: 1px solid #0071e3;
-            width: auto;
-            padding: 8px 12px;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        .btn-secondary:hover {
-            background-color: #e3f2fd;
-        }
-        .table-input {
-            padding: 6px;
-        }
-        .board-visual {
-            height: 40px;
-            background: #e2e2e2;
+
+        .board-wrapper {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 1rem;
             border-radius: 6px;
-            margin: 10px 0;
-            overflow: hidden;
-            display: flex;
-            border: 1px solid #b5b5b7;
-            position: relative;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
-        .cut-segment {
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-            box-sizing: border-box;
-            transition: width 0.3s ease;
-            background-color: #34c759;
+
+        .board-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
-        .kerf-segment {
-            height: 100%;
-            background-color: #ff453a;
-            width: 3px;
-            min-width: 2px;
-            position: relative;
-            z-index: 2;
-            opacity: 0.95;
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 60px;
+            background: #eee;
+            border-radius: 4px;
         }
-        .waste-segment {
-            height: 100%;
-            background-color: #8e8e93;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
+
+        .error-message {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: none;
             font-weight: 500;
-            font-style: italic;
-            flex-grow: 1;
-        }
-        .board-container {
-            margin-bottom: 25px;
-            padding: 15px;
-            background: #fafafa;
-            border-radius: 8px;
-            border: 1px solid #e5e5ea;
-        }
-        ul {
-            padding-left: 20px;
-            margin: 10px 0;
-        }
-        li {
-            margin-bottom: 5px;
-            font-size: 15px;
-        }
-        hr {
-            border: 0;
-            border-top: 1px solid #e5e5ea;
-            margin: 15px 0;
         }
     </style>
 </head>
 <body>
 
-    <h1>Cutting List</h1>
+<div class="container">
+    <h1>Cutting List Optimizer</h1>
 
-    <div class="card">
+    <div id="errorBox" class="error-message"></div>
+
+    <!-- 1. Stock Timber Length -->
+    <div class="section">
         <h2>1. Stock Timber Length</h2>
-        <table id="inventoryTable">
-            <thead>
-                <tr>
-                    <th>Length (mm)</th>
-                    <th>Available Qty (Blank for infinite)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="number" class="table-input stock-length" value="4800" min="1"></td>
-                    <td><input type="number" class="table-input stock-qty" value="" placeholder="∞" min="1"></td>
-                </tr>
-            </tbody>
-        </table>
-        <button class="btn-secondary" onclick="addInventoryRow()">+ Add Stock Length</button>
-
-        <div class="form-group" style="margin-top: 15px;">
-            <label for="kerf">Saw Blade Thickness / Kerf (mm):</label>
-            <input type="number" id="kerf" value="3" step="0.5">
+        <div class="form-group">
+            <div class="input-wrapper">
+                <label for="stockLength">Length (mm)</label>
+                <input type="number" id="stockLength" value="4800">
+            </div>
+            <div class="input-wrapper">
+                <label for="stockQty">Available Qty</label>
+                <input type="number" id="stockQty" placeholder="Infinite">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="input-wrapper">
+                <label for="kerf">Saw Blade Thickness / Kerf (mm)</label>
+                <input type="number" id="kerf" value="3">
+            </div>
         </div>
     </div>
 
-    <div class="card">
+    <!-- 2. Required Cuts -->
+    <div class="section">
         <h2>2. Required Cuts</h2>
-        <div class="form-group">
-            <label for="cutsInput">Enter required cuts as comma-separated lengths (e.g., 1200, 1200, 600, 450):</label>
-            <input type="text" id="cutsInput" value="1200, 1200, 600, 600, 450, 450, 300">
+        <div class="input-wrapper" style="margin-bottom: 1rem;">
+            <label for="requiredCuts">Enter required cuts as comma-separated lengths (mm):</label>
+            <input type="text" id="requiredCuts" value="1200, 1200, 600, 600, 450, 450, 300">
         </div>
         <button id="calculateBtn">Calculate & Graph Plan</button>
     </div>
 
-    <div class="card" id="resultsCard" style="display:none;">
+    <!-- 3. Graphical Allocation Diagram -->
+    <div class="section">
         <h2>3. Graphical Allocation Diagram</h2>
-        <div id="summary"></div>
-        <div id="visualLayouts"></div>
+        <div id="diagramContainer" class="diagram-container">
+            <p style="color: #64748b; font-style: italic;">Click calculate to generate visual layout diagrams.</p>
+        </div>
     </div>
+</div>
 
-    <script>
-        function addInventoryRow() {
-            const tbody = document.querySelector('#inventoryTable tbody');
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><input type="number" class="table-input stock-length" placeholder="e.g. 4800" min="1"></td>
-                <td><input type="number" class="table-input stock-qty" placeholder="∞" min="1"></td>
-            `;
-            tbody.appendChild(row);
+<script>
+    // Bind event handler securely inside script context to avoid global scope references
+    document.getElementById('calculateBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        optimizeCuts();
+    });
+
+    function optimizeCuts() {
+        const errorBox = document.getElementById('errorBox');
+        const container = document.getElementById('diagramContainer');
+        
+        errorBox.style.display = 'none';
+        container.innerHTML = '';
+
+        // 1. Gather & parse inputs
+        const stockLength = parseInt(document.getElementById('stockLength').value, 10);
+        const kerf = parseInt(document.getElementById('kerf').value, 10) || 0;
+        const rawCutsString = document.getElementById('requiredCuts').value;
+
+        if (isNaN(stockLength) || stockLength <= 0) {
+            showError("Please enter a valid stock timber length.");
+            return;
         }
 
-        function optimizeCuts() {
-            const kerf = parseFloat(document.getElementById('kerf').value);
-            const cutsInputRaw = document.getElementById('cutsInput').value;
+        // Clean and validate requested dimensions
+        const cuts = rawCutsString.split(',')
+            .map(val => parseInt(val.trim(), 10))
+            .filter(val => !isNaN(val) && val > 0);
 
-            let stockInventory = [];
-            const rows = document.querySelectorAll('#inventoryTable tbody tr');
-            rows.forEach(row => {
-                const len = parseFloat(row.querySelector('.stock-length').value);
-                const qtyVal = row.querySelector('.stock-qty').value;
-                const qty = qtyVal === "" ? Infinity : parseInt(qtyVal, 10);
-                if (!isNaN(len) && len > 0 && !isNaN(qty) && qty > 0) {
-                    stockInventory.push({ length: len, remainingQty: qty });
+        if (cuts.length === 0) {
+            showError("Please enter at least one valid cutting length dimensions.");
+            return;
+        }
+
+        // Guard rails: Check if any requested cut length exceeds raw stock capacity
+        const oversizedCuts = cuts.filter(c => c > stockLength);
+        if (oversizedCuts.length > 0) {
+            showError(`Error: Cut length (${oversizedCuts[0]}mm) is longer than your stock material (${stockLength}mm).`);
+            return;
+        }
+
+        // Sort descending to optimize allocation efficiency (First-Fit Decreasing heuristic)
+        cuts.sort((a, b) => b - a);
+
+        // 2. Perform greedy allocation logic
+        const boards = []; // Matrix array containing boards and their assigned segments
+
+        cuts.forEach(cut => {
+            let placed = false;
+
+            for (let board of boards) {
+                // Calculate space required to append current slice:
+                // Only require trailing blade kerf structural overhead if segments exist on the board
+                const spaceNeeded = board.currentUsed === 0 ? cut : cut + kerf;
+
+                if (board.currentUsed + spaceNeeded <= stockLength) {
+                    board.cuts.push(cut);
+                    board.currentUsed += spaceNeeded;
+                    placed = true;
+                    break;
                 }
-            });
-
-            stockInventory.sort((a, b) => a.length - b.length);
-
-            let demandedCuts = cutsInputRaw.split(',')
-                .map(x => parseFloat(x.trim()))
-                .filter(x => !isNaN(x) && x > 0)
-                .sort((a, b) => b - a);
-
-            if (stockInventory.length === 0) {
-                alert("Please add at least one valid stock board length configuration.");
-                return;
-            }
-            if (demandedCuts.length === 0) {
-                alert("Please enter valid required cut lengths.");
-                return;
             }
 
-            let boards = [];
-            let usedStockCounts = {};
-
-            for (let cut of demandedCuts) {
-                let bestBoardIndex = -1;
-                let minWasteIncrease = Infinity;
-
-                for (let i = 0; i < boards.length; i++) {
-                    let spaceNeeded = boards[i].cuts.length === 0 ? cut : cut + kerf;
-                    if (boards[i].remaining >= spaceNeeded) {
-                        let theoreticalLeftover = boards[i].remaining - spaceNeeded;
-                        if (theoreticalLeftover < minWasteIncrease) {
-                            minWasteIncrease = theoreticalLeftover;
-                            bestBoardIndex = i;
-                        }
-                    }
-                }
-
-                let bestNewStockLength = null;
-                let minNewStockWaste = Infinity;
-
-                stockInventory.forEach(stock => {
-                    let currentUsage = usedStockCounts[stock.length] || 0;
-                    if (stock.length >= cut && currentUsage < stock.remainingQty) {
-                        let waste = stock.length - cut;
-                        if (waste < minNewStockWaste) {
-                            minNewStockWaste = waste;
-                            bestNewStockLength = stock.length;
-                        }
-                    }
+            // Fallback: provision a brand new board layout if segment doesn't fit existing ones
+            if (!placed) {
+                boards.push({
+                    cuts: [cut],
+                    currentUsed: cut
                 });
+            }
+        });
 
-                if (bestBoardIndex !== -1 && minWasteIncrease <= minNewStockWaste) {
-                    let b = boards[bestBoardIndex];
-                    let spaceNeeded = b.cuts.length === 0 ? cut : cut + kerf;
-                    b.cuts.push(cut);
-                    b.remaining -= spaceNeeded;
-                } else if (bestNewStockLength !== null) {
-                    usedStockCounts[bestNewStockLength] = (usedStockCounts[bestNewStockLength] || 0) + 1;
-                    boards.push({ initialLength: bestNewStockLength, cuts: [cut], remaining: bestNewStockLength - cut });
-                } else {
-                    alert(`Cannot fit required cut length ${cut}mm into any available stock sizes under the specified restrictions.`);
-                    return;
-                }
+        // 3. Render graphical results to Canvas layout
+        boards.forEach((board, index) => {
+            const boardWrapper = document.createElement('div');
+            boardWrapper.className = 'board-wrapper';
+
+            const title = document.createElement('div');
+            title.className = 'board-title';
+            const waste = stockLength - board.currentUsed;
+            title.textContent = `Timber Board #${index + 1} (${stockLength}mm) — Used: ${board.currentUsed}mm | Leftover Waste: ${waste}mm`;
+            boardWrapper.appendChild(title);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 800; // Fixed canvas execution context size
+            canvas.height = 60;
+            boardWrapper.appendChild(canvas);
+            container.appendChild(boardWrapper);
+
+            drawBoardDiagram(canvas, board.cuts, stockLength, kerf);
+        });
+    }
+
+    function drawBoardDiagram(canvas, cuts, stockLength, kerf) {
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+        const scale = W / stockLength;
+
+        // Distinct colors for visual segments layout allocation differentiation
+        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6'];
+
+        ctx.clearRect(0, 0, W, H);
+        let currentX = 0;
+
+        cuts.forEach((cut, i) => {
+            // Pick slice visual color fill index loop iteration
+            const color = colors[i % colors.length];
+            const cutWidth = cut * scale;
+
+            // Draw primary component plank cutout slice segment representation
+            ctx.fillStyle = color;
+            ctx.fillRect(currentX, 0, cutWidth, H);
+
+            // Text Label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            if (cutWidth > 40) { // Only render numerical labels if component box size permits visibility
+                ctx.fillText(`${cut}mm`, currentX + (cutWidth / 2), H / 2);
             }
 
-            let totalSkins = boards.length;
-            let totalCutLength = demandedCuts.reduce((a, b) => a + b, 0);
-            let totalStockLength = boards.reduce((sum, b) => sum + b.initialLength, 0);
-            let totalWaste = totalStockLength - totalCutLength;
+            currentX += cutWidth;
+
