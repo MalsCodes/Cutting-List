@@ -154,9 +154,7 @@
     </style>
 </head>
 <body>
-
     <h1>Cutting List</h1>
-
     <div class="card">
         <h2>1. Inventory & Settings</h2>
         <div class="form-group">
@@ -168,7 +166,7 @@
             <input type="number" id="kerf" value="3" step="0.5">
         </div>
     </div>
-
+    
     <div class="card">
         <h2>2. Required Cuts</h2>
         <div id="cutsContainer">
@@ -248,10 +246,11 @@
             const kerf = parseFloat(document.getElementById('kerf').value) || 0;
             const stockInputRaw = document.getElementById('stockLengthsInput').value;
             
+            // Sort ascending for selecting the tightest fitting board later
             let availableStocks = stockInputRaw.split(',')
                 .map(x => parseFloat(x.trim()))
                 .filter(x => !isNaN(x) && x > 0)
-                .sort((a, b) => b - a);
+                .sort((a, b) => a - b); 
 
             let demandedCuts = [];
             const lengths = document.querySelectorAll('.cut-length');
@@ -271,32 +270,27 @@
                 alert("Please enter at least one valid stock board length.");
                 return;
             }
-
             if (demandedCuts.length === 0) {
                 alert("Please enter valid required lengths and quantities.");
                 return;
             }
 
-            const maxAvailableStock = availableStocks[0];
+            const maxAvailableStock = availableStocks[availableStocks.length - 1];
             let oversizedCuts = demandedCuts.filter(cut => cut > maxAvailableStock);
             if (oversizedCuts.length > 0) {
                 alert(`Error: Some required cuts (${[...new Set(oversizedCuts)].join(', ')}mm) are longer than your longest available stock board (${maxAvailableStock}mm).`);
                 return;
             }
 
-            // Sort descending for first-fit decreasing strategy
+            // First-fit decreasing optimization algorithm
             demandedCuts.sort((a, b) => b - a);
             let boards = [];
 
             demandedCuts.forEach(cut => {
                 let placed = false;
+                
+                // Try to find an existing opened board that can fit this cut
                 for (let board of boards) {
                     let spaceNeeded = board.cuts.length === 0 ? cut : cut + kerf;
                     if (board.remaining >= spaceNeeded) {
                         board.cuts.push(cut);
-                        board.remaining -= spaceNeeded;
-                        placed = true;
-                        break;
-                    }
-                }
-                if (!placed) {
