@@ -124,7 +124,7 @@
             document.getElementById('resultsCard').style.display = 'block';
             
             let totalWaste = boards.reduce((acc, b) => acc + b.remaining, 0);
-            let summaryHTML = `<p><strong>Total Stock Boards Needed:</strong> ${boards.length}</p><ul>`;
+            let summaryHTML = `<p><strong>Total Stock Needed:</strong> ${boards.length}</p><ul>`;
             
             let counts = {};
             boards.forEach(b => counts[b.totalLength] = (counts[b.totalLength] || 0) + 1);
