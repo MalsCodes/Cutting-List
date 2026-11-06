@@ -16,9 +16,9 @@
         
         /* Graphical Elements */
         .board-visual { height: 40px; background: #e2e2e2; border-radius: 6px; margin: 10px 0; overflow: hidden; display: flex; border: 1px solid #b5b5b7; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
-        .cut-segment { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: white; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); box-sizing: border-box; transition: width 0.3s ease; }
-        .kerf-segment { height: 100%; background-color: #ff453a; width: 3px; min-width: 2px; position: relative; z-index: 2; opacity: 0.95; }
-        .waste-segment { height: 100%; background-color: #8e8e93; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; font-style: italic; }
+        .cut-segment { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: white; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); box-sizing: border-box; transition: width 0.3s ease; white-space: nowrap; overflow: hidden; }
+        .kerf-segment { height: 100%; background-color: #ff453a; box-sizing: border-box; }
+        .waste-segment { height: 100%; background-color: #8e8e93; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; font-style: italic; white-space: nowrap; overflow: hidden; }
         .board-container { margin-bottom: 25px; padding: 15px; background: #fafafa; border-radius: 8px; border: 1px solid #e5e5ea; }
         
         ul { padding-left: 20px; margin: 10px 0; }
@@ -63,6 +63,7 @@
             const stockInputRaw = document.getElementById('stockLengthsInput').value;
             const cutsInputRaw = document.getElementById('cutsInput').value;
             
+            // Available stocks: sorted descending to evaluate larger options first
             let availableStocks = stockInputRaw.split(',')
                 .map(x => parseFloat(x.trim()))
                 .filter(x => !isNaN(x) && x > 0)
@@ -95,6 +96,7 @@
             demandedCuts.forEach(cut => {
                 let placed = false;
 
+                // Look across current open boards to see if it fits
                 for (let board of boards) {
                     let spaceNeeded = board.cuts.length === 0 ? cut : cut + kerf;
                     if (board.remaining >= spaceNeeded) {
@@ -105,6 +107,7 @@
                     }
                 }
 
+                // If it does not fit open boards, pull the absolute smallest new stock board required
                 if (!placed) {
                     let viableStocks = availableStocks.filter(s => s >= cut).sort((a, b) => a - b);
                     let chosenStock = viableStocks[0]; 
@@ -136,7 +139,6 @@
             document.getElementById('summary').innerHTML = summaryHTML;
 
             let layoutsHTML = '';
-            // Distinct material aesthetic colors for visualization blocks
             const colors = ['#2ca02c', '#1f77b4', '#ff7f0e', '#9467bd', '#e377c2', '#17becf'];
 
             boards.forEach((board, index) => {
@@ -147,15 +149,17 @@
                     let color = colors[cIndex % colors.length];
                     layoutsHTML += `<div class="cut-segment" style="width: ${cutWidthPercent}%; background-color: ${color};">${cut}mm</div>`;
                     
+                    // Render kerf lines only between items
                     if (cIndex < board.cuts.length - 1) {
                         let kerfWidthPercent = (kerf / board.totalLength) * 100;
                         layoutsHTML += `<div class="kerf-segment" style="width: ${kerfWidthPercent}%;"></div>`;
                     }
                 });
 
+                // Display exact remaining space
                 if (board.remaining > 0) {
                     let wasteWidthPercent = (board.remaining / board.totalLength) * 100;
-                    layoutsHTML += `<div class="waste-segment" style="width: ${wasteWidthPercent}%;">${board.remaining.toFixed(0)}mm Waste</div>`;
+                    layoutsHTML += `<div class="waste-segment" style="width: ${wasteWidthPercent}%;">${board.remaining.toFixed(1)}mm Waste</div>`;
                 }
 
                 layoutsHTML += `</div></div>`;
