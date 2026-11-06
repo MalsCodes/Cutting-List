@@ -33,8 +33,8 @@
     <div class="card">
         <h2>1. Inventory & Settings</h2>
         <div class="form-group">
-            <label for="stockLengthsInput">Available Stock Board Lengths (comma-separated, e.g., 2400, 3000):</label>
-            <input type="text" id="stockLengthsInput" value="2400, 3000">
+            <label for="stockLengthsInput">Available Timber Lengths (comma-separated, e.g., 4800, 5400):</label>
+            <input type="text" id="stockLengthsInput" value="4800, 5400">
         </div>
         <div class="form-group">
             <label for="kerf">Saw Blade Thickness / Kerf (mm):</label>
@@ -63,7 +63,6 @@
             const stockInputRaw = document.getElementById('stockLengthsInput').value;
             const cutsInputRaw = document.getElementById('cutsInput').value;
             
-            // Available stocks: sorted descending to evaluate larger options first
             let availableStocks = stockInputRaw.split(',')
                 .map(x => parseFloat(x.trim()))
                 .filter(x => !isNaN(x) && x > 0)
@@ -96,7 +95,6 @@
             demandedCuts.forEach(cut => {
                 let placed = false;
 
-                // Look across current open boards to see if it fits
                 for (let board of boards) {
                     let spaceNeeded = board.cuts.length === 0 ? cut : cut + kerf;
                     if (board.remaining >= spaceNeeded) {
@@ -107,7 +105,6 @@
                     }
                 }
 
-                // If it does not fit open boards, pull the absolute smallest new stock board required
                 if (!placed) {
                     let viableStocks = availableStocks.filter(s => s >= cut).sort((a, b) => a - b);
                     let chosenStock = viableStocks[0]; 
@@ -149,14 +146,12 @@
                     let color = colors[cIndex % colors.length];
                     layoutsHTML += `<div class="cut-segment" style="width: ${cutWidthPercent}%; background-color: ${color};">${cut}mm</div>`;
                     
-                    // Render kerf lines only between items
                     if (cIndex < board.cuts.length - 1) {
                         let kerfWidthPercent = (kerf / board.totalLength) * 100;
                         layoutsHTML += `<div class="kerf-segment" style="width: ${kerfWidthPercent}%;"></div>`;
                     }
                 });
 
-                // Display exact remaining space
                 if (board.remaining > 0) {
                     let wasteWidthPercent = (board.remaining / board.totalLength) * 100;
                     layoutsHTML += `<div class="waste-segment" style="width: ${wasteWidthPercent}%;">${board.remaining.toFixed(1)}mm Waste</div>`;
